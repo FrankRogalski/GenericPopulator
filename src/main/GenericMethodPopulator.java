@@ -18,6 +18,10 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 public class GenericMethodPopulator {
+    private static final String GET = "get";
+    private static final String SET = "set";
+    private static final String ACCEPT = "accept";
+
     private final Map<Class, Map<String, FunctionBinder>> functionStorage = new HashMap<>();
 
     private static final Lookup LOOKUP = MethodHandles.lookup();
@@ -27,8 +31,8 @@ public class GenericMethodPopulator {
                 .collect(toMap(Method::getName, identity()))
                 .entrySet()
                 .stream()
-                .filter(entry -> entry.getKey().startsWith("get"))
-                .map(entry -> entry(entry.getKey().replace("get", ""), entry.getValue()))
+                .filter(entry -> entry.getKey().startsWith(GET))
+                .map(entry -> entry(entry.getKey().replace(GET, ""), entry.getValue()))
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
         sourceFields.entrySet().forEach(entry -> populateEntry(sourceClass, source, targetClass, target, entry));
@@ -37,11 +41,11 @@ public class GenericMethodPopulator {
     private <S, T, U> void populateEntry(final Class<S> sourceClass, final S source, final Class<T> targetClass,
                                    final T target, final Entry<String, Method> sourceEntry) {
         try {
-            final MethodHandle setter = findMethod(targetClass, sourceEntry, "set",
+            final MethodHandle setter = findMethod(targetClass, sourceEntry, SET,
                     sourceEntry.getValue().getReturnType(), null);
             final Consumer<U> consumer = (Consumer) setter.bindTo(target).invoke();
 
-            final MethodHandle getter = findMethod(sourceClass, sourceEntry, "get", null, sourceEntry.getValue());
+            final MethodHandle getter = findMethod(sourceClass, sourceEntry, GET, null, sourceEntry.getValue());
             final Supplier<U> supplier = (Supplier) getter.bindTo(source).invoke();
 
             consumer.accept(supplier.get());
@@ -55,7 +59,7 @@ public class GenericMethodPopulator {
         return Optional.of(functionStorage)
                 .map(map -> map.get(clazz))
                 .map(map -> map.get(entry.getKey()))
-                .map(functionBinder -> prefix.equals("set") ? functionBinder.getSetter() : functionBinder.getGetter())
+                .map(functionBinder -> prefix.equals(SET) ? functionBinder.getSetter() : functionBinder.getGetter())
                 .orElseGet(() -> getMethodHandle(clazz, entry.getKey(), prefix, parameter, method));
     }
 
@@ -63,9 +67,9 @@ public class GenericMethodPopulator {
                                          final Class<?> parameter, final Method method) {
         try {
             final Method realMethod = method != null ? method : clazz.getDeclaredMethod(prefix + fieldName, parameter);
-            final MethodHandle methodHandle = createFromMethod(realMethod, prefix.equals("set") ? Consumer.class : Supplier.class);
+            final MethodHandle methodHandle = createFromMethod(realMethod, prefix.equals(SET) ? Consumer.class : Supplier.class);
             setFunctionMap(clazz, fieldName, methodHandle,
-                    prefix.equals("set") ? FunctionBinder::setSetter : FunctionBinder::setGetter);
+                    prefix.equals(SET) ? FunctionBinder::setSetter : FunctionBinder::setGetter);
             return methodHandle;
         } catch (final NoSuchMethodException e) {
             e.printStackTrace();
@@ -76,7 +80,7 @@ public class GenericMethodPopulator {
     private MethodHandle createFromMethod(final Method method, final Class<?> type) {
         try {
             final MethodHandle methodHandle = LOOKUP.unreflect(method);
-            return LambdaMetafactory.metafactory(LOOKUP, type.equals(Consumer.class) ? "accept" : "get",
+            return LambdaMetafactory.metafactory(LOOKUP, type.equals(Consumer.class) ? ACCEPT : GET,
                     MethodType.methodType(type), methodHandle.type(), methodHandle, methodHandle.type()).getTarget();
         } catch (final IllegalAccessException | LambdaConversionException e) {
             e.printStackTrace();
