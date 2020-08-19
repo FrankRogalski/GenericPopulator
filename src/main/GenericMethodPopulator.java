@@ -17,6 +17,11 @@ import static java.util.Map.entry;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
+/**
+ * awesome sources:
+ * https://stackoverflow.com/questions/27602758/java-access-bean-methods-with-lambdametafactory
+ * https://stackoverflow.com/questions/19557829/faster-alternatives-to-javas-reflection#19563000
+ */
 public class GenericMethodPopulator {
     private static final String GET = "get";
     private static final String SET = "set";
