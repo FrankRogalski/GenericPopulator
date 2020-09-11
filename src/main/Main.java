@@ -18,18 +18,17 @@ public class Main {
 
 
     public static void main(String[] args) {
-        Person person = new Person();
-        person.setName("name1");
-        person.setAge(2);
-        person.setCountry("country1");
-        person.setStreet("street1");
-        person.setHouseNumber(13);
-        final Person person2 = new Person();
+        final Map<String, Object> pers = Map.of("name", "name1",
+                "age", 2,
+                "country", "country1",
+                "street", "street",
+                "houseNumber", 13);
 
+        final Person person = new Person();
         final GenericMethodPopulator genericMethodPopulator = new GenericMethodPopulator();
 
-        genericMethodPopulator.populate(Person.class, person, Person.class, person2);
-        System.out.println(person2.getName());
+        genericMethodPopulator.populate(pers, Person.class, person);
+        System.out.println(person.getName());
     }
 
     public static void egal() throws Throwable {
