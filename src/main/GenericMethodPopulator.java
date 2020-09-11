@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toMap;
  * awesome sources:
  * https://stackoverflow.com/questions/27602758/java-access-bean-methods-with-lambdametafactory
  * https://stackoverflow.com/questions/19557829/faster-alternatives-to-javas-reflection#19563000
+ * https://github.com/const/sample-getters-setters/blob/master/src/main/java/samples/SettersJava11.java
  */
 @SuppressWarnings({"rawtypes", "unchecked", "RedundantExplicitVariableType", "java:S106", "java:S3740"})
 public class GenericMethodPopulator {
